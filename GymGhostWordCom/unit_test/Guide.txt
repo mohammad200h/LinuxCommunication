@@ -1,0 +1,4 @@
+Google test does not works with pthreads. Therefore I need to implement a test without libraries.
+
+https://stackoverflow.com/questions/52273110/how-do-i-write-a-unit-test-in-c
+

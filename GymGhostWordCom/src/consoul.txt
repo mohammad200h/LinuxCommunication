@@ -1,0 +1,11 @@
+Defaulting to user installation because normal site-packages is not writeable
+Obtaining file:///home/mamad/hand_RL_ws/LinuxCommunication/GymGhostWordCom/src
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Installing collected packages: ClientMQPkg
+  Attempting uninstall: ClientMQPkg
+    Found existing installation: ClientMQPkg 1.0
+    Uninstalling ClientMQPkg-1.0:
+      Successfully uninstalled ClientMQPkg-1.0
+  Running setup.py develop for ClientMQPkg
+Successfully installed ClientMQPkg-1.0

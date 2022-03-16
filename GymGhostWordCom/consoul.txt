@@ -1,0 +1,134 @@
+Defaulting to user installation because normal site-packages is not writeable
+Obtaining file:///home/mamad/hand_RL_ws/LinuxCommunication/GymGhostWordCom
+  Preparing metadata (setup.py): started
+  Preparing metadata (setup.py): finished with status 'done'
+Installing collected packages: ClientMQPkg
+  Running setup.py develop for ClientMQPkg
+    ERROR: Command errored out with exit status 1:
+     command: /usr/bin/python3 -c 'import io, os, sys, setuptools, tokenize; sys.argv[0] = '"'"'/home/mamad/hand_RL_ws/LinuxCommunication/GymGhostWordCom/setup.py'"'"'; __file__='"'"'/home/mamad/hand_RL_ws/LinuxCommunication/GymGhostWordCom/setup.py'"'"';f = getattr(tokenize, '"'"'open'"'"', open)(__file__) if os.path.exists(__file__) else io.StringIO('"'"'from setuptools import setup; setup()'"'"');code = f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' develop --no-deps --user --prefix=
+         cwd: /home/mamad/hand_RL_ws/LinuxCommunication/GymGhostWordCom/
+    Complete output (122 lines):
+    running develop
+    running egg_info
+    writing ClientMQPkg.egg-info/PKG-INFO
+    writing dependency_links to ClientMQPkg.egg-info/dependency_links.txt
+    writing top-level names to ClientMQPkg.egg-info/top_level.txt
+    reading manifest file 'ClientMQPkg.egg-info/SOURCES.txt'
+    writing manifest file 'ClientMQPkg.egg-info/SOURCES.txt'
+    running build_ext
+    building 'client' extension
+    x86_64-linux-gnu-gcc -pthread -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -fPIC -I/usr/local/include -I./include/ -I/usr/include/python3.6m -c ./src/client_com_wrapper.cpp -o build/temp.linux-x86_64-3.6/./src/client_com_wrapper.o -std=c++17
+    ./src/client_com_wrapper.cpp: In function 'PyObject* PyClient_MQ_init(PyClient*, PyObject*)':
+    ./src/client_com_wrapper.cpp:35:1: warning: no return statement in function returning non-void [-Wreturn-type]
+     }
+     ^
+    ./src/client_com_wrapper.cpp: In function 'PyObject* PyClient_MQ_create_run_thread(PyClient*, PyObject*)':
+    ./src/client_com_wrapper.cpp:40:1: warning: no return statement in function returning non-void [-Wreturn-type]
+     }
+     ^
+    ./src/client_com_wrapper.cpp: At global scope:
+    ./src/client_com_wrapper.cpp:38:19: warning: 'PyObject* PyClient_MQ_create_run_thread(PyClient*, PyObject*)' defined but not used [-Wunused-function]
+     static PyObject * PyClient_MQ_create_run_thread(PyClient *self,PyObject *args){
+                       ^
+    ./src/client_com_wrapper.cpp:42:19: warning: 'PyObject* PyClient_MQ_send(PyClient*, PyObject*)' defined but not used [-Wunused-function]
+     static PyObject * PyClient_MQ_send(PyClient *self,PyObject *args){
+                       ^
+    ./src/client_com_wrapper.cpp:106:19: warning: 'PyObject* PyClient_MQ_getGhostStateforClient(PyClient*, PyObject*)' defined but not used [-Wunused-function]
+     static PyObject * PyClient_MQ_getGhostStateforClient(PyClient *self,PyObject *args){
+                       ^
+    x86_64-linux-gnu-gcc -pthread -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -fPIC -I/usr/local/include -I./include/ -I/usr/include/python3.6m -c ./src/msg.cpp -o build/temp.linux-x86_64-3.6/./src/msg.o -std=c++17
+    x86_64-linux-gnu-gcc -pthread -DNDEBUG -g -fwrapv -O2 -Wall -g -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -fPIC -I/usr/local/include -I./include/ -I/usr/include/python3.6m -c ./src/Com.cpp -o build/temp.linux-x86_64-3.6/./src/Com.o -std=c++17
+    ./src/Com.cpp: In member function 'bool Server::is_client_in_queue(boost::uuids::uuid)':
+    ./src/Com.cpp:399:26: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+             for(int i = 0; i < clients_queue.size(); ++i){
+                              ^
+    ./src/Com.cpp: In member function 'bool Server::is_client_in_queue(int)':
+    ./src/Com.cpp:410:26: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+             for(int i = 0; i < clients_queue.size(); ++i){
+                              ^
+    ./src/Com.cpp: In member function 'bool Server::is_gymState_in_state_buffer(boost::uuids::uuid)':
+    ./src/Com.cpp:422:26: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+             for(int i = 0; i < state_buffer.size(); ++i){
+                              ^
+    ./src/Com.cpp: In member function 'void Server::add_client_state_to_buffer(boost::uuids::uuid, GymworldState)':
+    ./src/Com.cpp:442:26: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+             for(int i = 0; i < state_buffer.size(); ++i){
+                              ^
+    ./src/Com.cpp: In member function 'void Server::remove_client_from_queue(boost::uuids::uuid)':
+    ./src/Com.cpp:458:22: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         for(int i = 0; i < clients_queue.size(); ++i){
+                          ^
+    ./src/Com.cpp: In member function 'void Server::removeStateFromBuffer(boost::uuids::uuid)':
+    ./src/Com.cpp:472:22: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         for(int i = 0; i < state_buffer.size(); ++i){
+                          ^
+    ./src/Com.cpp: In member function 'std::vector<boost::uuids::uuid> Server::getClientsInQueue()':
+    ./src/Com.cpp:482:22: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         for(int i = 0; i < clients_queue.size(); ++i){
+                          ^
+    ./src/Com.cpp: In member function 'int Server::get_socket_for_client(boost::uuids::uuid)':
+    ./src/Com.cpp:489:18: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         for(int i=0;i<clients_queue.size();i++){
+                      ^
+    ./src/Com.cpp: In member function 'GymworldState Server::getGymStateforId(boost::uuids::uuid)':
+    ./src/Com.cpp:496:22: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         for(int i = 0; i < this->state_buffer.size(); ++i){
+                          ^
+    ./src/Com.cpp: In member function 'bool Server_MQ::is_client_in_queue(boost::uuids::uuid)':
+    ./src/Com.cpp:659:26: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+             for(int i = 0; i < clients_queue.size(); ++i){
+                              ^
+    ./src/Com.cpp: In member function 'bool Server_MQ::is_gymState_in_state_buffer(boost::uuids::uuid)':
+    ./src/Com.cpp:677:26: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+             for(int i = 0; i < state_buffer.size(); ++i){
+                              ^
+    ./src/Com.cpp: In member function 'void Server_MQ::add_client_state_to_buffer(boost::uuids::uuid, GymworldState)':
+    ./src/Com.cpp:704:26: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+             for(int i = 0; i < state_buffer.size(); ++i){
+                              ^
+    ./src/Com.cpp: In member function 'void Server_MQ::remove_client_from_queue(boost::uuids::uuid)':
+    ./src/Com.cpp:721:22: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         for(int i = 0; i < clients_queue.size(); ++i){
+                          ^
+    ./src/Com.cpp: In member function 'void Server_MQ::removeStateFromBuffer(boost::uuids::uuid)':
+    ./src/Com.cpp:734:22: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         for(int i = 0; i < state_buffer.size(); ++i){
+                          ^
+    ./src/Com.cpp: In member function 'std::vector<boost::uuids::uuid> Server_MQ::getClientsInQueue()':
+    ./src/Com.cpp:747:22: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         for(int i = 0; i < clients_queue.size(); ++i){
+                          ^
+    ./src/Com.cpp: In member function 'GymworldState Server_MQ::getGymStateforId(boost::uuids::uuid)':
+    ./src/Com.cpp:756:22: warning: comparison between signed and unsigned integer expressions [-Wsign-compare]
+         for(int i = 0; i < this->state_buffer.size(); ++i){
+                          ^
+    ./src/Com.cpp: In member function 'bool Server::send(boost::uuids::uuid, GhostWorldState)':
+    ./src/Com.cpp:384:1: warning: control reaches end of non-void function [-Wreturn-type]
+     }
+     ^
+    ./src/Com.cpp: In member function 'int Server::get_socket_for_client(boost::uuids::uuid)':
+    ./src/Com.cpp:493:1: warning: control reaches end of non-void function [-Wreturn-type]
+     }
+     ^
+    ./src/Com.cpp: In member function 'GymworldState Server::getGymStateforId(boost::uuids::uuid)':
+    ./src/Com.cpp:503:1: warning: control reaches end of non-void function [-Wreturn-type]
+     }
+     ^
+    ./src/Com.cpp: In member function 'GymworldState Server_MQ::getGymStateforId(boost::uuids::uuid)':
+    ./src/Com.cpp:768:1: warning: control reaches end of non-void function [-Wreturn-type]
+     }
+     ^
+    ./src/Com.cpp: In member function 'bool Server_MQ::send(boost::uuids::uuid, GhostWorldState)':
+    ./src/Com.cpp:800:1: warning: control reaches end of non-void function [-Wreturn-type]
+     }
+     ^
+    ./src/Com.cpp: In member function 'bool Client_MQ::send(GymworldState)':
+    ./src/Com.cpp:885:1: warning: control reaches end of non-void function [-Wreturn-type]
+     }
+     ^
+    x86_64-linux-gnu-g++ -pthread -shared -Wl,-O1 -Wl,-Bsymbolic-functions -Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,-Bsymbolic-functions -Wl,-z,relro -g -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 build/temp.linux-x86_64-3.6/./src/client_com_wrapper.o build/temp.linux-x86_64-3.6/./src/msg.o build/temp.linux-x86_64-3.6/./src/Com.o -L/usr/local/lib -lstdc++ -l-lrt -o build/lib.linux-x86_64-3.6/client.cpython-36m-x86_64-linux-gnu.so
+    /usr/bin/ld: cannot find -l-lrt
+    collect2: error: ld returned 1 exit status
+    error: command 'x86_64-linux-gnu-g++' failed with exit status 1
+    ----------------------------------------
+ERROR: Command errored out with exit status 1: /usr/bin/python3 -c 'import io, os, sys, setuptools, tokenize; sys.argv[0] = '"'"'/home/mamad/hand_RL_ws/LinuxCommunication/GymGhostWordCom/setup.py'"'"'; __file__='"'"'/home/mamad/hand_RL_ws/LinuxCommunication/GymGhostWordCom/setup.py'"'"';f = getattr(tokenize, '"'"'open'"'"', open)(__file__) if os.path.exists(__file__) else io.StringIO('"'"'from setuptools import setup; setup()'"'"');code = f.read().replace('"'"'\r\n'"'"', '"'"'\n'"'"');f.close();exec(compile(code, __file__, '"'"'exec'"'"'))' develop --no-deps --user --prefix= Check the logs for full command output.

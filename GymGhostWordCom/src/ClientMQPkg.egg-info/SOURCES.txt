@@ -1,0 +1,8 @@
+Com.cpp
+client_com_wrapper.cpp
+msg.cpp
+setup.py
+ClientMQPkg.egg-info/PKG-INFO
+ClientMQPkg.egg-info/SOURCES.txt
+ClientMQPkg.egg-info/dependency_links.txt
+ClientMQPkg.egg-info/top_level.txt
