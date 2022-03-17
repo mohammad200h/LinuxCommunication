@@ -1,0 +1,7 @@
+setup.py
+pyclientMQ.egg-info/PKG-INFO
+pyclientMQ.egg-info/SOURCES.txt
+pyclientMQ.egg-info/dependency_links.txt
+pyclientMQ.egg-info/not-zip-safe
+pyclientMQ.egg-info/requires.txt
+pyclientMQ.egg-info/top_level.txt
