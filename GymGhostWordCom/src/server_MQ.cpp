@@ -20,7 +20,10 @@ int main(int argc, char *argv[])
 	        GymworldState gymState = server->getGymStateforId(id);
             server->removeStateFromBuffer(id);
             GhostWorldState ghostState;
-            ghostState.ff = 1;
+            ghostState.ff = true;
+            ghostState.mf = false;
+            ghostState.rf = false;
+            ghostState.th = false;
             server->send(id,ghostState);
             server->remove_client_from_queue(id);
         }

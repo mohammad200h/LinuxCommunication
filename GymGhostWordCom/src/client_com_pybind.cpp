@@ -16,11 +16,12 @@ PYBIND11_MODULE(pyclientMQ,handle){
 
         .def("run",&Client_MQ::create_run_thread)
         .def("send",&Client_MQ::send)
+        .def("getGhostState",&Client_MQ::getGhostStateforClient)
     ;
     
-    //Dfining data type
-    py::class_<GymworldState> gws(handle,"GymworldState");
-        gws.def(py::init<>())
+    //********Dfining data type***********
+    py::class_<GymworldState> gym_ws(handle,"GymworldState");
+        gym_ws.def(py::init<>())
         .def_readwrite("ff", &GymworldState::ff) 
         .def_readwrite("mf", &GymworldState::mf) 
         .def_readwrite("rf", &GymworldState::rf) 
@@ -28,7 +29,19 @@ PYBIND11_MODULE(pyclientMQ,handle){
         .def_readwrite("cube", &GymworldState::cube)  
         ;
 
-    py::class_<objState> obj_state(gws, "objState");
+
+
+    py::class_<GhostWorldState> ghost_ws(handle,"GhostWorldState");
+        ghost_ws.def(py::init<>())
+        .def_readwrite("ff", &GhostWorldState::ff) 
+        .def_readwrite("mf", &GhostWorldState::mf) 
+        .def_readwrite("rf", &GhostWorldState::rf) 
+        .def_readwrite("th", &GhostWorldState::th) 
+   
+        ;
+
+
+    py::class_<objState> obj_state(gym_ws, "objState");
        obj_state.def(py::init<>())
        .def_readwrite("pos", &objState::pos)  
                  .def_readwrite("orn", &objState::orn)  
@@ -47,6 +60,6 @@ PYBIND11_MODULE(pyclientMQ,handle){
         .def_readwrite("p", &orientation::p) 
         .def_readwrite("y", &orientation::y)  
         ;
-    
+
 
 }

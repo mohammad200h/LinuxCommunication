@@ -24,6 +24,13 @@
 #include <jsoncpp/json/json.h>
 
 
+#include "spdlog/spdlog.h"
+#include "spdlog/sinks/basic_file_sink.h" // support for basic file logging
+#include "spdlog/sinks/rotating_file_sink.h" // support for rotating file logging
+
+#define LOGFLAG false
+#define LOG(text) {if (LOGFLAG)spdlog::info(text);}
+
 #define SOCKET_NAME "/tmp/DemoSocket"
 #define BUFFER_SIZE 1000
 

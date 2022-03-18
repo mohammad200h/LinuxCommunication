@@ -17,10 +17,11 @@ WORKDIR home/$UNAME/
 
 
 #****************************
+RUN echo "FUUUUUUCK!"
 RUN echo $PASS | sudo -S apt-get update
 # RUN printf '%s\n%s\n%s\n%s\n' ${PASS} 'y' '8' '27'| sudo -S apt-get install software-properties-common
 
-RUN echo $PASS |  sudo -S apt-get install -y software-properties-common
+# RUN echo $PASS |  sudo -S apt-get install -y software-properties-common
 RUN echo $PASS |  sudo -S apt-get install -y build-essential cmake 
 #***********************************Installing TF*************************
 
@@ -42,7 +43,9 @@ RUN echo $PASS | sudo -S apt-get update
 RUN printf '%s\n%s\n' ${PASS} 'y'|sudo -S apt-get install terminator
 
 #***********************************
-sudo apt-get install libjsoncpp-dev 
-sudo ln -s /usr/include/jsoncpp/json/ /usr/include/json
+RUN echo $PASS |  sudo -S apt-get update
+RUN echo $PASS |  sudo -S apt-get install -y libjsoncpp-dev 
+RUN echo $PASS |  sudo -S ln -s /usr/include/jsoncpp/json/ /usr/include/json
+RUN echo $PASS |  sudo -S apt-get install -y gdb
 #**********************************
 CMD /bin/bash

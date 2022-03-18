@@ -37,13 +37,14 @@ main(int argc, char *argv[])
     Client_MQ* client = new Client_MQ();  
     client->init();
     client->create_run_thread();
-    
+    int counter = 0;
     while (1)
     {
+        counter +=1;
         gymState.ff.pos.z = 5;
         bool succ = client->send(gymState);
         GhostWorldState ghost_state= client-> getGhostStateforClient();
-        cout<<"client::recived::ghost_state::ff:: "<<std::boolalpha <<ghost_state.ff<<endl;
+        cout<<"client::recived::ghost_state::ff:: "<<std::boolalpha <<ghost_state.ff<<counter<<endl;
     }
     
 

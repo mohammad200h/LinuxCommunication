@@ -1,9 +1,7 @@
 
 #include "Com/Com.h"
 
-#include "spdlog/spdlog.h"
-#include "spdlog/sinks/basic_file_sink.h" // support for basic file logging
-#include "spdlog/sinks/rotating_file_sink.h" // support for rotating file logging
+
 
 using namespace std;
 
@@ -129,43 +127,47 @@ int Searlalize::getGymStateBufferSize(){
 //****************Masage Queue**************************
 Server_MQ::Server_MQ(){
 
+    
     // Create basic file logger (not rotated)
+    #if LOGFLAG
     auto my_logger = spdlog::basic_logger_mt("basic_logger", "logs/server_MQ.txt");
     spdlog::set_default_logger(my_logger);
     spdlog::flush_on(spdlog::level::info);
 
     spdlog::info("Server::"+str(__FUNCTION__));
+    #endif
 
     /*To set msgQ attributes*/
     attr.mq_flags = 0;
     attr.mq_maxmsg = MAX_MESSAGES;
     attr.mq_msgsize = MAX_MSG_SIZE;
     attr.mq_curmsgs = 0;
-    spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Server::"+str(__FUNCTION__)+"::end");
 
 }
 
 void Server_MQ::init(){
-  spdlog::info("Server::"+str(__FUNCTION__));
-
+   
+    LOG("Server::"+str(__FUNCTION__));
+    
     mq_unlink(MSG_Q_Name_GYM);
     if ((msgq_fd  = mq_open (MSG_Q_Name_GYM, O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
-        printf ("Client: mq_open failed, errno = %d", errno);
+        printf ("Server: mq_open failed, errno = %d", errno);
         exit (1);
     }
-    spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Server::"+str(__FUNCTION__)+"::end");
     
 }
 void Server_MQ::run(){
  
     while(1){
-        spdlog::info("Server::"+str(__FUNCTION__));
+        LOG("Server::"+str(__FUNCTION__));
         FD_ZERO(&readfds);
         FD_SET( msgq_fd, &readfds);
-        cout<<"Reciever blocked on select()....\r";
-        cout<<"msgq_fd + 1::"<<msgq_fd + 1<<endl;
+        // cout<<"Reciever blocked on select()....\r";
+        // cout<<"msgq_fd + 1::"<<msgq_fd + 1<<endl;
         select(msgq_fd + 1, &readfds, NULL, NULL, NULL);
-        cout<<"msgq_fd + 1::"<<msgq_fd + 1<<endl;
+        // cout<<"msgq_fd + 1::"<<msgq_fd + 1<<endl;
         if(FD_ISSET(msgq_fd, &readfds)){
             \
             
@@ -187,49 +189,49 @@ void Server_MQ::run(){
 
             add_client_to_queue(gym_State.key.id);
             add_client_state_to_buffer(gym_State.key.id,gym_State);
-            spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+            LOG("Server::"+str(__FUNCTION__)+"::end");
         }
     }
     
 }
 
 bool Server_MQ::create_run_thread(){
-      spdlog::info("Server::"+str(__FUNCTION__));
+    LOG("Server::"+str(__FUNCTION__));
     bool success = pthread_create(&t,NULL,InternalThreadEntryFunc,this)==0;
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Server::"+str(__FUNCTION__)+"::end");
     return success;
 }
 
 void * Server_MQ::InternalThreadEntryFunc(void * This){
-      spdlog::info("Server::"+str(__FUNCTION__));
-     ((Server_MQ *)This)->run(); 
-      spdlog::info("Client::"+str(__FUNCTION__)+"::end");
-     return NULL;
+    LOG("Server::"+str(__FUNCTION__));
+    ((Server_MQ *)This)->run(); 
+    LOG("Server::"+str(__FUNCTION__)+"::end");
+    return NULL;
 
  }
 
 
 bool Server_MQ::is_there_any_client_in_queue(){
-      spdlog::info("Server::"+str(__FUNCTION__));
+    LOG("Server::"+str(__FUNCTION__));
     pthread_mutex_lock(&this->clients_queue.lock);
     if (clients_queue.data.size() ==0){
         pthread_mutex_unlock(&this->clients_queue.lock);
-         spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+        LOG("Server::"+str(__FUNCTION__)+"::end");
         return false;
     }else{
         pthread_mutex_unlock(&this->clients_queue.lock);
-         spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+        LOG("Server::"+str(__FUNCTION__)+"::end");
         return true;
     }
 }
 bool Server_MQ::is_client_in_queue(boost::uuids::uuid client_id,bool keep_mutex_locked){
-      spdlog::info("Server::"+str(__FUNCTION__));
-    cout<<"I am here::is_client_in_queue"<<endl; 
+    LOG("Server::"+str(__FUNCTION__));
+    // cout<<"I am here::is_client_in_queue"<<endl; 
     // pthread_mutex_lock(&this->clients_queue.lock);
     if (clients_queue.data.size() ==0){
-        cout<<"I am here::is_client_in_queue::false::1"<<endl; 
+        // cout<<"I am here::is_client_in_queue::false::1"<<endl; 
         if (!keep_mutex_locked) pthread_mutex_unlock(&this->clients_queue.lock);
-        spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+        LOG("Server::"+str(__FUNCTION__)+"::end");
        
         return false;
     }else{
@@ -237,54 +239,54 @@ bool Server_MQ::is_client_in_queue(boost::uuids::uuid client_id,bool keep_mutex_
             string str1 = boost::lexical_cast<std::string>(clients_queue.data[i]);
             string str2=boost::lexical_cast<std::string>(client_id);
             bool same = !strcmp(str1.c_str(), str2.c_str());
-            cout<<"clients_queue.data[i]::"<<boost::lexical_cast<std::string>(clients_queue.data[i])<<endl;
-            cout<<"client_id::"<<boost::lexical_cast<std::string>(client_id)<<endl;
-            cout<<"same::"<< std::boolalpha << same <<endl;
+            // cout<<"clients_queue.data[i]::"<<boost::lexical_cast<std::string>(clients_queue.data[i])<<endl;
+            // cout<<"client_id::"<<boost::lexical_cast<std::string>(client_id)<<endl;
+            // cout<<"same::"<< std::boolalpha << same <<endl;
             if (same){
 
-                cout<<"I am here::is_client_in_queue::True"<<endl;
+                // cout<<"I am here::is_client_in_queue::True"<<endl;
                 if (!keep_mutex_locked) pthread_mutex_unlock(&this->clients_queue.lock);
-                spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+                LOG("Server::"+str(__FUNCTION__)+"::end");
                 return true;
             }
                 
         }
-        cout<<"I am here::is_client_in_queue::false::2"<<endl;
+        // cout<<"I am here::is_client_in_queue::false::2"<<endl;
         if (!keep_mutex_locked) pthread_mutex_unlock(&this->clients_queue.lock);
-        spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+        LOG("Server::"+str(__FUNCTION__)+"::end");
         return false;
    
     }
 }
 
 bool Server_MQ::is_gymState_in_state_buffer(boost::uuids::uuid client_id){
-    spdlog::info("Server::"+str(__FUNCTION__));
+    LOG("Server::"+str(__FUNCTION__));
     pthread_mutex_lock(&state_buffer_mutex);
     if  (state_buffer.size()==0){
         pthread_mutex_unlock(&state_buffer_mutex);
-         spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+        LOG("Server::"+str(__FUNCTION__)+"::end");
         return false;
     }else{
         for(int i = 0; i < state_buffer.size(); ++i){
             if (state_buffer[i].key.id==client_id){
-                 pthread_mutex_unlock(&state_buffer_mutex);
-                 spdlog::info("Client::"+str(__FUNCTION__)+"::end");
-                    return true;
+                pthread_mutex_unlock(&state_buffer_mutex);
+                LOG("Server::"+str(__FUNCTION__)+"::end");
+                return true;
 
             }
         }
         pthread_mutex_unlock(&state_buffer_mutex);
-         spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+        LOG("Server::"+str(__FUNCTION__)+"::end");
         return false;
     }
         
     
 }
 void Server_MQ::add_client_to_queue(boost::uuids::uuid client_id){
-      spdlog::info("Server::"+str(__FUNCTION__));
+    LOG("Server::"+str(__FUNCTION__));
     //add client to queue if it is not already in queue 
     pthread_mutex_lock(&this->clients_queue.lock);
-    cout<<"I am here::add_client_to_queue"<<endl; 
+    // cout<<"I am here::add_client_to_queue"<<endl; 
     bool flag=!is_client_in_queue(client_id,true);
     if (flag){
         // pthread_mutex_lock(&this->clients_queue.lock);
@@ -292,53 +294,63 @@ void Server_MQ::add_client_to_queue(boost::uuids::uuid client_id){
         clients_queue.data.push_back(client_id);
        
         pthread_mutex_unlock(&this->clients_queue.lock);
-        cout<<"add_client_to_queue::unlocking the resource"<<endl;
+        // cout<<"add_client_to_queue::unlocking the resource"<<endl;
+        LOG("Server::"+str(__FUNCTION__)+"::end");
+        return;
     }
     pthread_mutex_unlock(&this->clients_queue.lock);
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Server::"+str(__FUNCTION__)+"::end");
    
 }
 
 void Server_MQ::add_client_state_to_buffer(boost::uuids::uuid client_id,GymworldState gymState){
     //update state if already in buffer or add state if not  
-      spdlog::info("Server::"+str(__FUNCTION__));
+      LOG("Server::"+str(__FUNCTION__));
     
     // cout<<"i am here::add_client_state_to_buffer"<<endl;
     if (is_gymState_in_state_buffer(client_id)){
         pthread_mutex_lock(&state_buffer_mutex);
         for(int i = 0; i < state_buffer.size(); ++i){
             if (state_buffer[i].key.id==client_id){
-            //update state
-            state_buffer[i] =gymState;
+                //update state
+                state_buffer[i] =gymState;
+                pthread_mutex_unlock(&state_buffer_mutex);
+                LOG("Server::"+str(__FUNCTION__)+"::end");
+                return;
+
             }
         }
     }else{
-         state_buffer.push_back(gymState);
+        //add state
+        pthread_mutex_lock(&state_buffer_mutex);
+        state_buffer.push_back(gymState);
     }
     pthread_mutex_unlock(&state_buffer_mutex);
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Server::"+str(__FUNCTION__)+"::end");
     
 
 }
 void Server_MQ::remove_client_from_queue(boost::uuids::uuid client_id){
-      spdlog::info("Server::"+str(__FUNCTION__));
+    LOG("Server::"+str(__FUNCTION__));
    
     pthread_mutex_lock(&this->clients_queue.lock);
     for(int i = 0; i < clients_queue.data.size(); ++i){
         if (clients_queue.data[i]==client_id){
             
             clients_queue.data.erase(clients_queue.data.begin()+i);
-            
+            pthread_mutex_unlock(&this->clients_queue.lock);
+            LOG("Server::"+str(__FUNCTION__)+"::end");
+            return;
             
         }
     }
     pthread_mutex_unlock(&this->clients_queue.lock);
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Server::"+str(__FUNCTION__)+"::end");
     
 
 }
 void Server_MQ::removeStateFromBuffer(boost::uuids::uuid client_id){
-    spdlog::info("Server::"+str(__FUNCTION__));  
+    LOG("Server::"+str(__FUNCTION__));  
     pthread_mutex_lock(&state_buffer_mutex);   
     for(int i = 0; i < state_buffer.size(); ++i){
         if (state_buffer[i].key.id==client_id){
@@ -350,54 +362,53 @@ void Server_MQ::removeStateFromBuffer(boost::uuids::uuid client_id){
 
     }
     pthread_mutex_unlock(&state_buffer_mutex);
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Server::"+str(__FUNCTION__)+"::end");
 
 }
 vector <boost::uuids::uuid> Server_MQ::getClientsInQueue(){
-  spdlog::info("Server::"+str(__FUNCTION__));
-   cout<<"server::calling::getClientsInQueue"<<endl;
-   vector <boost::uuids::uuid> clients_queue_ids;
+    LOG("Server::"+str(__FUNCTION__));
+    // cout<<"server::calling::getClientsInQueue"<<endl;
+    vector <boost::uuids::uuid> clients_queue_ids;
     pthread_mutex_lock(&this->clients_queue.lock);
-    cout<<"getClientsInQueue::locking the resource"<<endl;
+    // cout<<"getClientsInQueue::locking the resource"<<endl;
     for(int i = 0; i < clients_queue.data.size(); ++i){
         
      
         clients_queue_ids.push_back(clients_queue.data[i]);
 
     }
-    cout<<"getClientsInQueue::unlocking the resource"<<endl;
+    // cout<<"getClientsInQueue::unlocking the resource"<<endl;
     pthread_mutex_unlock(&this->clients_queue.lock);
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Server::"+str(__FUNCTION__)+"::end");
     return clients_queue_ids;
 }
 
 GymworldState Server_MQ::getGymStateforId(boost::uuids::uuid client_id){
-      spdlog::info("Server::"+str(__FUNCTION__));
+    LOG("Server::"+str(__FUNCTION__));
     pthread_mutex_lock(&state_buffer_mutex);
     // cout<<"i am here::getGymStateforId"<<endl;
     for(int i = 0; i < this->state_buffer.size(); ++i){
         // cout<<"i am here::getGymStateforId::I am insdie loop"<<endl;
         if (this->state_buffer[i].key.id==client_id){
-            //remove state 
             GymworldState state = this->state_buffer[i];
             pthread_mutex_unlock(&state_buffer_mutex);
-             spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+            LOG("Server::"+str(__FUNCTION__)+"::end");
             return state;
         }
 
     }
     pthread_mutex_unlock(&state_buffer_mutex);
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Server::"+str(__FUNCTION__)+"::end");
    
 }
 
 bool Server_MQ::send(boost::uuids::uuid client_id,GhostWorldState ghostState){
-    spdlog::info("Server::"+str(__FUNCTION__));
+    LOG("Server::"+str(__FUNCTION__));
     string client_mqName = MSG_Q_Name_GHOST+boost::uuids::to_string(client_id);
     ghostState.key.id = client_id;
     ghostState.key.mqName = client_mqName;
 
-    cout<<"server::send::q_name:: "<<client_mqName<<endl;
+    // cout<<"server::send::q_name:: "<<client_mqName<<endl;
 
     milliseconds ms = duration_cast< milliseconds >(
     system_clock::now().time_since_epoch());
@@ -410,7 +421,7 @@ bool Server_MQ::send(boost::uuids::uuid client_id,GhostWorldState ghostState){
 
     //Creating a message queue
     if ((recvr_msgq_fd  = mq_open (client_mqName.c_str(), O_WRONLY | O_CREAT, 0, 0)) == -1) {
-        printf ("Client: mq_open failed, errno = %d", errno);
+        printf ("Server: mq_open failed, errno = %d", errno);
         exit (1);
     }
     
@@ -420,7 +431,7 @@ bool Server_MQ::send(boost::uuids::uuid client_id,GhostWorldState ghostState){
         exit (1);
     }
     mq_close(recvr_msgq_fd);
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Server::"+str(__FUNCTION__)+"::end");
     return true;
 
 }
@@ -435,7 +446,7 @@ Client_MQ::Client_MQ(){
     spdlog::set_default_logger(my_logger);
     spdlog::flush_on(spdlog::level::info);
 
-    spdlog::info("Client::"+str(__FUNCTION__));
+    LOG("Client::"+str(__FUNCTION__));
     //Creating a Message Queue In order to listen to messagees coming form server
 
       //Creating a Message Queue In order to listen to messagees coming form server
@@ -446,29 +457,29 @@ Client_MQ::Client_MQ(){
     attr.mq_maxmsg = MAX_MESSAGES;
     attr.mq_msgsize = MAX_MSG_SIZE;
     attr.mq_curmsgs = 0;
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Client::"+str(__FUNCTION__)+"::end");
 
 }
 void Client_MQ::init(){
-//TODO
-  spdlog::info("Client::"+str(__FUNCTION__));
-    cout<<"client::q_name:: "<<this->mqName.c_str()<<endl;
+
+    LOG("Client::"+str(__FUNCTION__));
+    // cout<<"client::q_name:: "<<this->mqName.c_str()<<endl;
     if ((msgq_fd  = mq_open (this->mqName.c_str(), O_RDONLY | O_CREAT, QUEUE_PERMISSIONS, &attr)) == -1) {
         printf ("Client: mq_open failed, errno = %d", errno);
         exit (1);
     }
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Client::"+str(__FUNCTION__)+"::end");
     
 }
 void Client_MQ::run(){
-//TODO
+
   
     while(1){
-        spdlog::info("Client::"+str(__FUNCTION__));
+        LOG("Client::"+str(__FUNCTION__));
         FD_ZERO(&readfds);
         FD_SET( msgq_fd, &readfds);
-        printf("Reciever blocked on select()....\n");
-        cout<<"msgq_fd + 1::"<<msgq_fd + 1<<endl;
+        // printf("Reciever blocked on select()....\n");
+        // cout<<"msgq_fd + 1::"<<msgq_fd + 1<<endl;
         select(msgq_fd + 1, &readfds, NULL, NULL, NULL);
         if(FD_ISSET(msgq_fd, &readfds)){
             \
@@ -478,7 +489,7 @@ void Client_MQ::run(){
                 printf ("mq_receive error, errno = %d\n", errno);
                 exit (1);
             }
-            printf("Msg recieved from Queue = %s\n", buffer);
+            // printf("Msg recieved from Queue = %s\n", buffer);
             /* Recive Ghost State*/
             GhostWorldState ghost_State;
             
@@ -487,17 +498,17 @@ void Client_MQ::run(){
             memcpy(&data_c, buffer,BUFFER_SIZE);
             //parse data
             ghost_State = parser->parseGhostState(data_c);
-            cout<<"ghost_State::ff::"<<ghost_State.ff<<endl;
+            // cout<<"ghost_State::ff::"<<ghost_State.ff<<endl;
 
             //update Ghost state
             updateState(ghost_State);
         }
-     spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+        LOG("Client::"+str(__FUNCTION__)+"::end");
     }
     
 }
 bool Client_MQ::send(GymworldState gymState){
-    spdlog::info("Client::"+str(__FUNCTION__));
+    LOG("Client::"+str(__FUNCTION__));
     gymState.key.id = this->id;
     gymState.key.mqName = this->mqName;
     //time step
@@ -522,50 +533,51 @@ bool Client_MQ::send(GymworldState gymState){
         exit (1);
     }
     mq_close(recvr_msgq_fd);
-    spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Client::"+str(__FUNCTION__)+"::end");
     return true;
 }
 bool Client_MQ::create_run_thread(){
-      spdlog::info("Client::"+str(__FUNCTION__));
+    LOG("Client::"+str(__FUNCTION__));
     bool success = pthread_create(&t,NULL,InternalThreadEntryFunc,this)==0;
-  spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Client::"+str(__FUNCTION__)+"::end");
     return success;
 }
 
 void * Client_MQ::InternalThreadEntryFunc(void * This){
-      spdlog::info("Client::"+str(__FUNCTION__));
-     ((Client_MQ *)This)->run(); 
-       spdlog::info("Client::"+str(__FUNCTION__)+"::end");
-     return NULL;
+    LOG("Client::"+str(__FUNCTION__));
+    ((Client_MQ *)This)->run(); 
+    LOG("Client::"+str(__FUNCTION__)+"::end");
+    return NULL;
 
- }
+}
+
 string Client_MQ::generate_mqName_for_this_client(boost::uuids::uuid id){
     //To make sure message queue name is unique we use cliend id as part of the name
-     spdlog::info("Client::"+str(__FUNCTION__));
-   return  MSG_Q_Name_GHOST+ boost::uuids::to_string(id);
+    LOG("Client::"+str(__FUNCTION__));
+    return  MSG_Q_Name_GHOST+ boost::uuids::to_string(id);
 }
 boost::uuids::uuid Client_MQ::generate_UUID_for_this_client(){
-      spdlog::info("Client::"+str(__FUNCTION__));
-     return   boost::uuids::random_generator()();
+    LOG("Client::"+str(__FUNCTION__));
+    return   boost::uuids::random_generator()();
 }
 void Client_MQ::updateState(GhostWorldState ghost_State){
-      spdlog::info("Client::"+str(__FUNCTION__));
+    LOG("Client::"+str(__FUNCTION__));
     pthread_mutex_lock(&state_mutex);
     this->ghostState = ghost_State;
-    cout<<"Client_MQ::updateState::ghost_State::id"<<boost::uuids::to_string(ghost_State.key.id)<<endl;
+    // cout<<"Client_MQ::updateState::ghost_State::id"<<boost::uuids::to_string(ghost_State.key.id)<<endl;
     bool id_is_a_match =boost::uuids::to_string(ghost_State.key.id) == boost::uuids::to_string(this->id);
-    cout<<"id_is_a_match:: "<<std::boolalpha <<  id_is_a_match<<endl;
+    // cout<<"id_is_a_match:: "<<std::boolalpha <<  id_is_a_match<<endl;
     pthread_mutex_unlock(&state_mutex);
-      spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Client::"+str(__FUNCTION__)+"::end");
 }
 GhostWorldState Client_MQ::getGhostStateforClient(){
-     //TODO
-       spdlog::info("Client::"+str(__FUNCTION__));
+  
+    LOG("Client::"+str(__FUNCTION__));
     //deque new state form message queue
     pthread_mutex_lock(&state_mutex);
     GhostWorldState ghost_state = this->ghostState;
     pthread_mutex_unlock(&state_mutex);
-  spdlog::info("Client::"+str(__FUNCTION__)+"::end");
+    LOG("Client::"+str(__FUNCTION__)+"::end");
     return ghost_state;
     
  }
