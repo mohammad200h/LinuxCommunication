@@ -16,12 +16,16 @@
 #include <sys/stat.h>
 #include <mqueue.h>
 #include <errno.h>
+#include <signal.h>
 
 
 #include<pthread.h>
 
 
 #include <jsoncpp/json/json.h>
+
+#include <sys/types.h>
+#include <unistd.h>
 
 
 #include "spdlog/spdlog.h"
@@ -85,6 +89,8 @@ class Searlalize{
 //****************Masage Queue**************************
 class Server_MQ{
     private:
+
+    
         fd_set readfds;
         char buffer[MSG_BUFFER_SIZE];
         int msgq_fd = 0;
@@ -98,11 +104,13 @@ class Server_MQ{
         pthread_mutex_t clients_queue_mutex;
 
         static void * InternalThreadEntryFunc(void * This);
+         inline static Server_MQ* me;
 
-
+        
 
 
     public:
+       
 
         Cleint_queue clients_queue;
         
@@ -122,6 +130,9 @@ class Server_MQ{
         GymworldState getGymStateforId(boost::uuids::uuid client_id);
         bool send(boost::uuids::uuid client_id,GhostWorldState ghostState); 
         Server_MQ();
+        static void before_process_is_killed_handler(int num);
+
+        
 
 };
 class Client_MQ{
@@ -143,6 +154,11 @@ class Client_MQ{
         boost::uuids::uuid id; //client id
         string mqName; //client message queue name
         Searlalize* searlalizer = new Searlalize();
+        inline static vector<tuple<Client_MQ *,pid_t>> me_vec;
+     
+  
+
+        
     public:
         bool create_run_thread();
         void init();
@@ -154,6 +170,9 @@ class Client_MQ{
         GhostWorldState getGhostStateforClient();
         void updateState(GhostWorldState ghost_State);
         boost::uuids::uuid get_id();
+   
 
         Client_MQ();
+        static void before_process_is_killed_handler(int num );
+     
 };

@@ -155,9 +155,14 @@ int Searlalize::getGymStateBufferSize(){
 
 
 //****************Masage Queue**************************
-Server_MQ::Server_MQ(){
+//******************************************************
 
-    
+//*************Server**************
+Server_MQ::Server_MQ(){
+    //https://stackoverflow.com/questions/343219/is-it-possible-to-use-signal-inside-a-c-class
+    //singal handeling
+    me = this;
+    signal(SIGINT,Server_MQ::before_process_is_killed_handler);    
     // Create basic file logger (not rotated)
     #if LOGFLAG
     auto my_logger = spdlog::basic_logger_mt("basic_logger", "logs/server_MQ.txt");
@@ -472,8 +477,23 @@ bool Server_MQ::send(boost::uuids::uuid client_id,GhostWorldState ghostState){
 
 }
 
-Client_MQ::Client_MQ(){
+void Server_MQ::before_process_is_killed_handler(int num){
+    //close all the message queues before death
+    cout<<"\nclosing message queues  for server ..."<<endl;
+    mq_close(me->msgq_fd);
+    exit(1);
+}
 
+
+
+//*******************Client**************
+
+Client_MQ::Client_MQ(){
+   //storing reference to class object and process
+    pid_t process_id = getpid();
+    me_vec.push_back(tuple<Client_MQ *,pid_t>(this,getpid()));
+    //singal handeling
+    signal(SIGINT,Client_MQ::before_process_is_killed_handler);
     // genrate an id for client
     this->id = generate_UUID_for_this_client();
     string id_str = boost::lexical_cast<std::string>(this->id);
@@ -488,6 +508,7 @@ Client_MQ::Client_MQ(){
 
       //Creating a Message Queue In order to listen to messagees coming form server
     this->mqName = generate_mqName_for_this_client(this->id);
+
 
     /*To set msgQ attributes*/
     attr.mq_flags = 0;
@@ -628,3 +649,26 @@ GhostWorldState Client_MQ::getGhostStateforClient(){
 boost::uuids::uuid Client_MQ::get_id(){
     return this->id;
 }
+
+void Client_MQ::before_process_is_killed_handler(int num){
+    //close all the message queues before death
+    cout<<"\nclosing message queues  for client ..."<<endl;
+    //getting reference to this object using process id
+    pid_t process_id = getpid();
+    Client_MQ* this_obj_ref;
+    for(int i=0;i<me_vec.size();i++){
+       pid_t process = get<1>(me_vec[i]);
+       auto obj_ref = get<0>(me_vec[i]);
+        if (process==process_id){
+            this_obj_ref = obj_ref;
+            break;
+        }
+
+    }
+    mq_close(this_obj_ref->msgq_fd);
+
+    cout<<"process_id::"<<process_id<<endl;
+    cout<<"uuid::"<<uuid_s(this_obj_ref->id).c_str()<<endl;
+    exit(1);
+}
+
