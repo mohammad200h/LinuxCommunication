@@ -43,8 +43,10 @@ main(int argc, char *argv[])
         counter +=1;
         gymState.ff.pos.z = 5;
         bool succ = client->send(gymState);
+        cout<<"clientId::"<<uuid_s(client->get_id())<<endl;
         GhostWorldState ghost_state= client-> getGhostStateforClient();
         cout<<"client::recived::ghost_state::ff:: "<<std::boolalpha <<ghost_state.ff<<counter<<endl;
+        cout<<"client::gymState::ff::pos::z::"<<gymState.ff.pos.z<<endl;
     }
     
 

@@ -10,6 +10,31 @@ string str(const char *str){
     return s;
 }
 
+string uuid_s(boost::uuids::uuid client_id){
+
+    // cout<<"uuid:: "<<client_id<<endl;
+    // cout<<"uuid::lexical_cast:: "<<boost::lexical_cast<std::string>(client_id)<<endl;
+    return  boost::lexical_cast<std::string>(client_id);
+}
+
+boost::uuids::uuid generate_UUID(){
+  
+    return   boost::uuids::random_generator()();
+}
+
+void print_ghost_state(GhostWorldState ghost_state){
+
+    cout<<"ghost_state::ff::"<<ghost_state.ff<<endl;
+    cout<<"ghost_state::mf::"<<ghost_state.mf<<endl;
+    cout<<"ghost_state::rf::"<<ghost_state.rf<<endl;
+    cout<<"ghost_state::th::"<<ghost_state.th<<endl;
+    cout<<"ghost_state::key::id::"<<uuid_s(ghost_state.key.id)<<endl;
+    // cout<<"ghost_state::key::timestep::"<<ghost_state.key.timestep<<endl;
+    cout<<"\n\n";
+
+}  
+
+//******************************************
 
 GymworldState Parser::parseGymState(char data[]){
     GymworldState gymState;
@@ -63,6 +88,8 @@ GymworldState Parser::parseGymState(char data[]){
 }
 
 GhostWorldState Parser::parseGhostState(char data[]){
+
+    // cout<<"parseGhostState"<<data<<endl;
     GhostWorldState ghostState;
     Json::Value v_json;
     Json::Reader reader;
@@ -71,7 +98,10 @@ GhostWorldState Parser::parseGhostState(char data[]){
     reader.parse(data,v_json);
     //key
     ghostState.key.id =boost::lexical_cast<boost::uuids::uuid >(v_json["key"].asString());
-    //ff   
+    //ff  
+
+
+    // cout<<"parseGhostState:: v_json[ff]"<<v_json["ff"]<<v_json["ff"].asInt()<<endl;
     ghostState.ff = v_json["ff"].asInt();
     ghostState.mf = v_json["mf"].asInt();
     ghostState.rf = v_json["rf"].asInt();
@@ -404,6 +434,12 @@ GymworldState Server_MQ::getGymStateforId(boost::uuids::uuid client_id){
 
 bool Server_MQ::send(boost::uuids::uuid client_id,GhostWorldState ghostState){
     LOG("Server::"+str(__FUNCTION__));
+    
+    // cout<<"Server_MQ::send::begin"<<endl;
+    // print_ghost_state(ghostState);
+    // cout<<"searlalizer->ghostState(ghostState).c_str()::"<<searlalizer->ghostState(ghostState).c_str()<<endl;
+    // cout<<"Server_MQ::send::end"<<endl;
+
     string client_mqName = MSG_Q_Name_GHOST+boost::uuids::to_string(client_id);
     ghostState.key.id = client_id;
     ghostState.key.mqName = client_mqName;
@@ -442,10 +478,11 @@ Client_MQ::Client_MQ(){
     this->id = generate_UUID_for_this_client();
     string id_str = boost::lexical_cast<std::string>(this->id);
     // Create basic file logger (not rotated)
+    #if LOGFLAG
     auto my_logger = spdlog::basic_logger_mt("basic_logger", "logs/client_MQ"+id_str+".txt");
     spdlog::set_default_logger(my_logger);
     spdlog::flush_on(spdlog::level::info);
-
+    #endif
     LOG("Client::"+str(__FUNCTION__));
     //Creating a Message Queue In order to listen to messagees coming form server
 
@@ -497,8 +534,11 @@ void Client_MQ::run(){
             // cout<<"buffer::"<<buffer<<endl;
             memcpy(&data_c, buffer,BUFFER_SIZE);
             //parse data
+            // cout<<"client::run::data_c"<<data_c<<endl;
+
             ghost_State = parser->parseGhostState(data_c);
-            // cout<<"ghost_State::ff::"<<ghost_State.ff<<endl;
+            // cout<<"client::run::ghost_State::"<<endl;
+            // print_ghost_state(ghost_State);
 
             //update Ghost state
             updateState(ghost_State);
@@ -562,22 +602,29 @@ boost::uuids::uuid Client_MQ::generate_UUID_for_this_client(){
 }
 void Client_MQ::updateState(GhostWorldState ghost_State){
     LOG("Client::"+str(__FUNCTION__));
-    pthread_mutex_lock(&state_mutex);
-    this->ghostState = ghost_State;
+    pthread_mutex_lock(&this->ghostState.lock);
+    this->ghostState.data = ghost_State;
     // cout<<"Client_MQ::updateState::ghost_State::id"<<boost::uuids::to_string(ghost_State.key.id)<<endl;
     bool id_is_a_match =boost::uuids::to_string(ghost_State.key.id) == boost::uuids::to_string(this->id);
     // cout<<"id_is_a_match:: "<<std::boolalpha <<  id_is_a_match<<endl;
-    pthread_mutex_unlock(&state_mutex);
+    pthread_mutex_unlock(&this->ghostState.lock);
     LOG("Client::"+str(__FUNCTION__)+"::end");
 }
 GhostWorldState Client_MQ::getGhostStateforClient(){
   
     LOG("Client::"+str(__FUNCTION__));
     //deque new state form message queue
-    pthread_mutex_lock(&state_mutex);
-    GhostWorldState ghost_state = this->ghostState;
-    pthread_mutex_unlock(&state_mutex);
+    pthread_mutex_lock(&this->ghostState.lock);
+
+    // cout<<"getGhostStateforClient"<<endl;
+    // print_ghost_state( this->ghostState.data);
+    GhostWorldState ghost_state = this->ghostState.data;
+    pthread_mutex_unlock(&this->ghostState.lock);
     LOG("Client::"+str(__FUNCTION__)+"::end");
     return ghost_state;
     
  }
+
+boost::uuids::uuid Client_MQ::get_id(){
+    return this->id;
+}

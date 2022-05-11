@@ -4,6 +4,12 @@
 using namespace std;
 
 
+
+/*##################
+
+This program simulate serving different clients
+###################*/
+
 int main(int argc, char *argv[])
 {
     Server_MQ* server = new Server_MQ();
@@ -17,7 +23,9 @@ int main(int argc, char *argv[])
         boost::uuids::uuid & id = clients_id[0];
         cout<<"\rclients_id::len"<<clients_id.size();
         for(auto & id: clients_id){
+            cout<<"server::id::"<<uuid_s(id)<<endl;
 	        GymworldState gymState = server->getGymStateforId(id);
+            cout<<"server::gymState::ff::pos::z::"<<gymState.ff.pos.z<<endl;
             server->removeStateFromBuffer(id);
             GhostWorldState ghostState;
             ghostState.ff = true;

@@ -48,9 +48,20 @@
 
 using namespace std;
 
+string uuid_s(boost::uuids::uuid client_id);
+
+boost::uuids::uuid generate_UUID();
+
+void print_ghost_state(GhostWorldState ghost_state);
+
 struct Cleint_queue{
        vector <boost::uuids::uuid> data;
         pthread_mutex_t lock;
+};
+
+struct GWS{
+    GhostWorldState data;
+    pthread_mutex_t lock;
 };
 
 class Parser{
@@ -119,7 +130,7 @@ class Client_MQ{
         char buffer[MSG_BUFFER_SIZE];
         int msgq_fd = 0;
         int recvr_msgq_fd = 0;
-        GhostWorldState ghostState;
+        GWS ghostState;
 
         struct mq_attr attr;
         Parser* parser =new Parser();
@@ -142,6 +153,7 @@ class Client_MQ{
         bool send(GymworldState gymState);
         GhostWorldState getGhostStateforClient();
         void updateState(GhostWorldState ghost_State);
+        boost::uuids::uuid get_id();
 
         Client_MQ();
 };
