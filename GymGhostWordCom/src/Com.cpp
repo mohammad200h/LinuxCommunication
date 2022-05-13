@@ -33,6 +33,18 @@ void print_ghost_state(GhostWorldState ghost_state){
     cout<<"\n\n";
 
 }  
+milliseconds get_current_time(){
+    milliseconds ms =duration_cast< milliseconds >(
+    system_clock::now().time_since_epoch());
+    return ms;
+}
+
+string get_current_time_str(){
+    milliseconds time = get_current_time();
+    string time_str = std::to_string(time.count());
+    return time_str;
+
+}
 
 //******************************************
 
@@ -47,6 +59,7 @@ GymworldState Parser::parseGymState(char data[]){
     // cout<<"gymState.key.id:: "<<v_json["key"] <<endl;
     // cout<<"gymState.key.id::type:: "<<typeid(v_json["key"].asString()).name() <<endl;
     gymState.key.id =boost::lexical_cast<boost::uuids::uuid >(v_json["key"].asString());
+    gymState.key.request_timestep = v_json["request_timestep"].asString();
    
     //ff   
     gymState.ff.pos.x = v_json["ff"]["pos"][0].asDouble();
@@ -98,6 +111,8 @@ GhostWorldState Parser::parseGhostState(char data[]){
     reader.parse(data,v_json);
     //key
     ghostState.key.id =boost::lexical_cast<boost::uuids::uuid >(v_json["key"].asString());
+    ghostState.key.served_timestep = v_json["served_timestep"].asString();
+    ghostState.key.request_timestep = v_json["request_timestep"].asString();
     //ff  
 
 
@@ -115,6 +130,7 @@ string Searlalize::gymState(GymworldState gym_State){
     char data[BUFFER_SIZE];
  
     sprintf(data, GymStateFormat,uuid_s(gym_State.key.id).c_str(),
+                                 gym_State.key.request_timestep.c_str(),
                                  gym_State.ff.pos.x,gym_State.ff.pos.y,gym_State.ff.pos.z,gym_State.ff.orn.r,gym_State.ff.orn.p,gym_State.ff.orn.y,
                                  gym_State.mf.pos.x,gym_State.mf.pos.y,gym_State.mf.pos.z,gym_State.mf.orn.r,gym_State.mf.orn.p,gym_State.mf.orn.y,
                                  gym_State.rf.pos.x,gym_State.rf.pos.y,gym_State.rf.pos.z,gym_State.rf.orn.r,gym_State.rf.orn.p,gym_State.rf.orn.y,
@@ -132,6 +148,8 @@ string Searlalize::gymState(GymworldState gym_State){
 string Searlalize::ghostState(GhostWorldState ghost_State){
     char data[BUFFER_SIZE];
     sprintf(data, GhostSateFormat,uuid_s(ghost_State.key.id).c_str(),
+                                  ghost_State.key.request_timestep.c_str(),
+                                  ghost_State.key.served_timestep.c_str(),
                                   int(ghost_State.ff),
                                   int(ghost_State.mf),
                                   int(ghost_State.rf),
@@ -437,6 +455,27 @@ GymworldState Server_MQ::getGymStateforId(boost::uuids::uuid client_id){
    
 }
 
+service_keys Server_MQ::getKeyId(boost::uuids::uuid client_id){
+    LOG("Server::"+str(__FUNCTION__));
+    cout<<"Server_MQ::getKeyId::called"<<endl;
+    pthread_mutex_lock(&state_buffer_mutex);
+    cout<<"i am here::getKeyId::after mutex"<<endl;
+    for(int i = 0; i < this->state_buffer.size(); ++i){
+        cout<<"i am here::getGymStateforId::I am insdie loop"<<endl;
+        if (this->state_buffer[i].key.id==client_id){
+            service_keys key = this->state_buffer[i].key;
+            cout<<"Server_MQ::getKeyId::id"<<uuid_s(key.id)<<endl;
+            pthread_mutex_unlock(&state_buffer_mutex);
+            LOG("Server::"+str(__FUNCTION__)+"::end");
+            return key;
+        }
+
+    }
+    pthread_mutex_unlock(&state_buffer_mutex);
+    LOG("Server::"+str(__FUNCTION__)+"::end");
+}
+
+
 bool Server_MQ::send(boost::uuids::uuid client_id,GhostWorldState ghostState){
     LOG("Server::"+str(__FUNCTION__));
     
@@ -451,11 +490,51 @@ bool Server_MQ::send(boost::uuids::uuid client_id,GhostWorldState ghostState){
 
     // cout<<"server::send::q_name:: "<<client_mqName<<endl;
 
-    milliseconds ms = duration_cast< milliseconds >(
-    system_clock::now().time_since_epoch());
-    ghostState.key.timestep =ms;
+    string ms = get_current_time_str();
+    ghostState.key.served_timestep =ms;
 
 
+    //preparing the data
+    char data[BUFFER_SIZE];
+    strcpy(data,searlalizer->ghostState(ghostState).c_str());
+
+    //Creating a message queue
+    if ((recvr_msgq_fd  = mq_open (client_mqName.c_str(), O_WRONLY | O_CREAT, 0, 0)) == -1) {
+        printf ("Server: mq_open failed, errno = %d", errno);
+        exit (1);
+    }
+    
+    //Adding message to the Queue
+    if (mq_send (recvr_msgq_fd, data, strlen (data) + 1, 0) == -1) {
+        perror ("Client: Not able to send message to server");
+        exit (1);
+    }
+    mq_close(recvr_msgq_fd);
+    LOG("Server::"+str(__FUNCTION__)+"::end");
+    return true;
+
+}
+
+bool Server_MQ::send(service_keys client_key,GhostWorldState ghostState){
+    cout<<"Server_MQ::send::called"<<endl;
+    LOG("Server::"+str(__FUNCTION__));
+    
+    // cout<<"Server_MQ::send::begin"<<endl;
+    // print_ghost_state(ghostState);
+    // cout<<"searlalizer->ghostState(ghostState).c_str()::"<<searlalizer->ghostState(ghostState).c_str()<<endl;
+    // cout<<"Server_MQ::send::end"<<endl;
+    boost::uuids::uuid & id =client_key.id;
+    string client_mqName = MSG_Q_Name_GHOST+boost::uuids::to_string(id);
+    ghostState.key.id = id;
+    ghostState.key.mqName = client_mqName;
+
+    cout<<"server::send::q_name:: "<<client_mqName<<endl;
+
+    
+    ghostState.key.served_timestep =get_current_time_str();
+    ghostState.key.request_timestep = client_key.request_timestep;
+
+    // cout<<"server::send::timestep::"<<std::to_string(ms.count())<<endl;
     //preparing the data
     char data[BUFFER_SIZE];
     strcpy(data,searlalizer->ghostState(ghostState).c_str());
@@ -483,7 +562,10 @@ void Server_MQ::before_process_is_killed_handler(int num){
     mq_close(me->msgq_fd);
     exit(1);
 }
-
+void Server_MQ::clean_after_serving_client(boost::uuids::uuid client_id){
+    this->removeStateFromBuffer(client_id);
+    this->remove_client_from_queue(client_id);
+}
 
 
 //*******************Client**************
@@ -573,9 +655,8 @@ bool Client_MQ::send(GymworldState gymState){
     gymState.key.id = this->id;
     gymState.key.mqName = this->mqName;
     //time step
-    milliseconds ms = duration_cast< milliseconds >(
-    system_clock::now().time_since_epoch());
-    gymState.key.timestep =ms;
+    string ms = get_current_time_str();
+    gymState.key.request_timestep =ms;
 
 
     //preparing the data

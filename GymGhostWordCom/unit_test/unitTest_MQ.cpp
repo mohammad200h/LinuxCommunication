@@ -37,6 +37,8 @@ typedef bool (*BoolFunc) ();
 
 #define EXPECT_num_EQ(x,y) { if (!((int)x-y<0.0001)) std::cout << red << __FUNCTION__ << " failed on line " << __LINE__ << def <<std::endl; }
 
+#define EXPECT_EQ_STR(x,y) { if (x.compare(y)) std::cout << red << __FUNCTION__ << " failed on line " << __LINE__ << def <<std::endl; }
+
 //######Uitlity Functions############
 
 // double check_if_bool_vecs_are_equal()
@@ -70,8 +72,6 @@ string vector_str_to_bool(vector <bool> vec){
     return s;
 }
 
-
-
 double rand_double(){
     return ((double)rand())/((double)RAND_MAX);
 }
@@ -83,7 +83,6 @@ double generate_random_num(){
     }
     return sum;
 }
-
 
 double generate_unique_random_number(vector<double>& history){
     //I am paranoid so i use a history to make sure the number was not
@@ -124,9 +123,6 @@ vector <bool> generate_random_bool_vec(int n){
     return binary_bool;
     
 }
-
-
-
 
 GymworldState get_random_gym_state(){
     GymworldState gym_state;
@@ -219,9 +215,6 @@ void run_ghost_state_test(int line,GhostWorldState ghost_state_c,GhostWorldState
     EXPECT_EQ(ghost_state_c.rf,ghost_state_s.rf)
     EXPECT_EQ(ghost_state_c.th,ghost_state_s.th)
 }
-
-
-
 
 //#################Searialize and Parser#########
 bool Test1(){
@@ -379,9 +372,8 @@ bool Test3(){
     //id
     gym_state.key.id =boost::uuids::random_generator()();
     //time step
-    milliseconds ms = duration_cast< milliseconds >(
-    system_clock::now().time_since_epoch());
-    gym_state.key.timestep = ms;
+    string ms =  get_current_time_str();
+    gym_state.key.request_timestep = ms;
 
     server->add_client_to_queue(gym_state.key.id);
     /*
@@ -403,6 +395,8 @@ bool Test3(){
     EXPECT_TRUE( server->getClientsInQueue().size()==0);
     
     std::cout << green << "Test 3 Passed"  << def <<std::endl;
+
+    delete server;
     
     return true;
 
@@ -435,6 +429,8 @@ bool Test4(){
     // EXPECT_TRUE(server->state_buffer.size()==0);
 
     std::cout << green << "Test 4 Passed"  << def <<std::endl;
+
+    delete server;
     return true;
 }
 
@@ -543,6 +539,9 @@ bool Test6(){
     }
     
     std::cout << green << "Test 6 Passed"  << def <<std::endl;
+
+    delete client;
+    delete server;
     return true;
 }
 
@@ -605,6 +604,11 @@ bool Test7(){
     
     }
     std::cout << green << "Test 7 Passed"  << def <<std::endl;
+    delete server;
+    for(Client_MQ* c:client_list){
+        delete c;
+    }
+    return true;
 
 }
 
@@ -676,6 +680,8 @@ bool Test8(){
     
 
     std::cout << green << "Test 8 Passed"  << def <<std::endl;
+    delete client;
+    delete server;
     return true;
 
 }
@@ -705,6 +711,7 @@ bool Test9(){
         c->init();
         c->create_run_thread();
     }
+    cout<<"Test9::1"<<endl;
     
     // initalizing 
     GymworldState gym_state_s;
@@ -721,14 +728,14 @@ bool Test9(){
         gym_state_c_vect.push_back(get_random_gym_state());
        
     }
-
+    cout<<"Test9::2"<<endl;
     //clients sending data 
     for(int i=0;i<4;i++){
         bool succ = client_list[i]->send(gym_state_c_vect[i]);
         clients_succ.push_back(succ);
     }
 
- 
+    cout<<"Test9::3"<<endl;
     // If data is successfuly sent to sever we send back server state back to clients
     for(int i=0;i<4;i++){
         bool client_successfully_send_state = clients_succ[i];
@@ -751,15 +758,15 @@ bool Test9(){
         }
     
     }
-
+    cout<<"Test9::4"<<endl;
     // here we check the data send by the server is correctly recived by the client (eaxtly the same)
   
     for(int i=0;i<4;i++){
         bool server_successfully_send_state = server_succ[i];
         ghost_state_s = ghost_state_s_vect[i];
         while(server_successfully_send_state){
-          ghost_state_c = client_list[i]-> getGhostStateforClient();
           sleep_until(system_clock::now() + 1s);
+          ghost_state_c = client_list[i]-> getGhostStateforClient();
         // cout<<"ghost_state_c::"<<endl;
         //   print_ghost_state(ghost_state_c);
         //   cout<<"ghost_state_s::"<<endl;
@@ -770,13 +777,98 @@ bool Test9(){
         }
     }
 
-    
+    cout<<"Test9::5"<<endl;
 
     std::cout << green << "Test 9 Passed"  << def <<std::endl;
+    delete server;
+    for(Client_MQ* c:client_list){
+        delete c;
+    }
     return true;
 
 }
+//#################Time step ####################
+bool Test10(){
+    /*
+    Testing the clients  time step
+    make sure client time step (reuqested_timestep )is sent to server and back
+    ghost state that recived should have the time step to gym state sent
+    */
 
+    Server_MQ* server = new Server_MQ();
+    Client_MQ* client = new Client_MQ();
+    
+    server->init();
+    server->create_run_thread();
+
+    client->init();
+    client->create_run_thread();
+
+
+    GymworldState gym_state_s;
+    GhostWorldState ghost_state_s;
+    string reuqested_timestep_reciveved_by_server;
+    string reuqested_timestep_sent_by_server;
+
+    GymworldState gym_state_c;
+    GhostWorldState ghost_state_c;
+
+    bool client_successfully_send_state;
+    bool server_successfully_send_state;
+
+    //client send Gym state to server
+    gym_state_c = get_random_gym_state();
+    client_successfully_send_state = client->send(gym_state_c);
+
+    int n =1;
+    cout<<"Test10::1"<<endl;
+
+    while(client_successfully_send_state){
+        vector <boost::uuids::uuid> clients_id = server->getClientsInQueue();
+        cout<<"Test10:2"<<endl;
+        if (clients_id.size()==1){
+            boost::uuids::uuid & id = clients_id[0];
+            gym_state_s = server->getGymStateforId(id);
+            reuqested_timestep_reciveved_by_server = gym_state_s.key.request_timestep;
+          
+            
+            ghost_state_s = get_random_ghost_state(n);
+  
+            service_keys key = server->getKeyId(id);
+            cout<<"key::request_timestep"<<key.request_timestep<<endl;
+            server_successfully_send_state=server->send(key,ghost_state_s);
+            server->removeStateFromBuffer(id);
+            server->remove_client_from_queue(id);
+             cout<<"Test10:3"<<endl;
+            
+            break;
+        }
+
+    }
+    
+    while(server_successfully_send_state){
+        cout<<"Test10:4"<<endl;
+        sleep_until(system_clock::now() + 1s);
+        ghost_state_c = client-> getGhostStateforClient();
+        reuqested_timestep_sent_by_server =  ghost_state_c.key.request_timestep;
+        cout<<"ghost_state_c::served_timestep::"<<ghost_state_c.key.served_timestep<<endl;
+        run_ghost_state_test(__LINE__,ghost_state_c,ghost_state_s);
+        break;
+
+    }
+    cout<<"Test10:5"<<endl;
+    cout<<"reuqested_timestep_reciveved_by_server::"<<reuqested_timestep_reciveved_by_server<<endl;
+    cout<<"reuqested_timestep_sent_by_server::"<<reuqested_timestep_sent_by_server<<endl;
+    EXPECT_EQ_STR(reuqested_timestep_reciveved_by_server,reuqested_timestep_sent_by_server);
+    
+    std::cout << green << "Test 10 Passed"  << def <<std::endl;
+
+    delete client;
+    delete server;
+
+    return true;
+
+}
 int main(void) {
 
     vector<BoolFunc>  test_list ={
@@ -789,6 +881,7 @@ int main(void) {
         ,Test7
         ,Test8
         ,Test9
+        ,Test10
     };
     bool succ = false; 
     for(int i=0;i<test_list.size();i++){

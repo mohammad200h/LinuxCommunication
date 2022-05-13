@@ -56,6 +56,9 @@ string uuid_s(boost::uuids::uuid client_id);
 
 boost::uuids::uuid generate_UUID();
 
+string get_current_time_str();
+milliseconds get_current_time();
+
 void print_ghost_state(GhostWorldState ghost_state);
 
 struct Cleint_queue{
@@ -128,9 +131,12 @@ class Server_MQ{
         void removeStateFromBuffer(boost::uuids::uuid client_id);
         vector <boost::uuids::uuid> getClientsInQueue();
         GymworldState getGymStateforId(boost::uuids::uuid client_id);
+        service_keys getKeyId(boost::uuids::uuid client_id);
         bool send(boost::uuids::uuid client_id,GhostWorldState ghostState); 
+        bool send(service_keys client_key,GhostWorldState ghostState); 
         Server_MQ();
         static void before_process_is_killed_handler(int num);
+        void clean_after_serving_client(boost::uuids::uuid client_id);
 
         
 

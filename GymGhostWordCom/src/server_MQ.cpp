@@ -26,14 +26,17 @@ int main(int argc, char *argv[])
             cout<<"server::id::"<<uuid_s(id)<<endl;
 	        GymworldState gymState = server->getGymStateforId(id);
             cout<<"server::gymState::ff::pos::z::"<<gymState.ff.pos.z<<endl;
-            server->removeStateFromBuffer(id);
+           
             GhostWorldState ghostState;
             ghostState.ff = true;
             ghostState.mf = false;
             ghostState.rf = false;
             ghostState.th = false;
-            server->send(id,ghostState);
-            server->remove_client_from_queue(id);
+            service_keys key = server->getKeyId(id);
+            server->send(key,ghostState);
+            cout<<"I am inside the server_MQ.cpp"<<endl;
+            server->clean_after_serving_client(id);
+            
         }
 
         

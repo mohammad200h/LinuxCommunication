@@ -15,7 +15,8 @@ struct service_keys{
     boost::uuids::uuid id;
     int socket;//This is used for socket communication
     string mqName; //This is used for message Queue communication
-    milliseconds timestep;
+    string request_timestep;
+    string served_timestep;
 
 };
 
