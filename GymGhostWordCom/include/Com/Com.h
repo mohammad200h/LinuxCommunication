@@ -109,9 +109,6 @@ class Server_MQ{
         static void * InternalThreadEntryFunc(void * This);
          inline static Server_MQ* me;
 
-        
-
-
     public:
        
 
@@ -135,7 +132,9 @@ class Server_MQ{
         bool send(boost::uuids::uuid client_id,GhostWorldState ghostState); 
         bool send(service_keys client_key,GhostWorldState ghostState); 
         Server_MQ();
+        ~Server_MQ();
         static void before_process_is_killed_handler(int num);
+        void before_obj_is_destructed();
         void clean_after_serving_client(boost::uuids::uuid client_id);
 
         
@@ -179,6 +178,8 @@ class Client_MQ{
    
 
         Client_MQ();
+        ~Client_MQ();
+        void before_obj_is_destructed();
         static void before_process_is_killed_handler(int num );
      
 };

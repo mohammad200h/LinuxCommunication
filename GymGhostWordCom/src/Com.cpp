@@ -567,6 +567,10 @@ void Server_MQ::clean_after_serving_client(boost::uuids::uuid client_id){
     this->remove_client_from_queue(client_id);
 }
 
+Server_MQ::~Server_MQ(){
+    cout<<"destroying message queue as the object is getting deleted .."<<endl;
+    mq_close(this->msgq_fd);
+}
 
 //*******************Client**************
 
@@ -751,5 +755,10 @@ void Client_MQ::before_process_is_killed_handler(int num){
     cout<<"process_id::"<<process_id<<endl;
     cout<<"uuid::"<<uuid_s(this_obj_ref->id).c_str()<<endl;
     exit(1);
+}
+
+Client_MQ::~Client_MQ(){
+    cout<<"destroying message queue as the object is getting deleted .."<<endl;
+    mq_close(this->msgq_fd);
 }
 
