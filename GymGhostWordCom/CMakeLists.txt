@@ -26,10 +26,12 @@ add_library(msg src/msg.cpp)
 add_executable(server_MQ src/server_MQ.cpp)
 add_executable(client_MQ src/client_MQ.cpp)
 
-target_include_directories(Com PUBLIC
+target_include_directories(Com  PUBLIC
 $<INSTALL_INTERFACE:include>
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
+
+
 target_include_directories(msg PUBLIC
 $<INSTALL_INTERFACE:include>
 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -41,9 +43,14 @@ target_link_libraries(Com jsoncpp msg ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(server_MQ  Com -lrt)
 target_link_libraries(client_MQ  Com -lrt)
 
-install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/include/Com/Com.h 
-              ${CMAKE_CURRENT_SOURCE_DIR}/include/Com/msg.h
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/include/Com
+install(FILES   ${CMAKE_CURRENT_SOURCE_DIR}/include/Com/Com.h 
+                ${CMAKE_CURRENT_SOURCE_DIR}/include/Com/msg.h
+             
+               DESTINATION ${CMAKE_INSTALL_PREFIX}/include/Com
+        )
+
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/spdlog        
+        DESTINATION ${CMAKE_INSTALL_PREFIX}/include/spdlog
         )
 install(TARGETS  Com msg EXPORT comExport DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/Com )
 
