@@ -1,7 +1,0 @@
-Obtaining file:///home/mamad/LinuxCommunication/GymGhostWordCom
-Installing collected packages: ClientMQPkg
-  Attempting uninstall: ClientMQPkg
-    Found existing installation: ClientMQPkg 1.0
-    Can't uninstall 'ClientMQPkg'. No files were found to uninstall.
-  Running setup.py develop for ClientMQPkg
-Successfully installed ClientMQPkg

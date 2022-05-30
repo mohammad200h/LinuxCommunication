@@ -1,0 +1,7 @@
+setup.py
+pyserverMQ.egg-info/PKG-INFO
+pyserverMQ.egg-info/SOURCES.txt
+pyserverMQ.egg-info/dependency_links.txt
+pyserverMQ.egg-info/not-zip-safe
+pyserverMQ.egg-info/requires.txt
+pyserverMQ.egg-info/top_level.txt

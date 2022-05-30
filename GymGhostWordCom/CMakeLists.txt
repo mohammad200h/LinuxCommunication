@@ -66,3 +66,9 @@ target_link_libraries(pyclientMQ PRIVATE  Com msg -lrt)
 
 target_compile_definitions(pyclientMQ
                            PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
+
+pybind11_add_module(pyserverMQ src/server_com_pybind.cpp src/Com.cpp)
+target_link_libraries(pyserverMQ PRIVATE  Com msg -lrt)
+
+target_compile_definitions(pyserverMQ
+                           PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
