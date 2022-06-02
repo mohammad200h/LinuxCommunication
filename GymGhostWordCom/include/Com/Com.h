@@ -48,6 +48,8 @@
 
 using namespace std;
 
+string uuid_s(boost::uuids::uuid client_id);
+
 struct Cleint_queue{
        vector <boost::uuids::uuid> data;
         pthread_mutex_t lock;

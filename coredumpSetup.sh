@@ -1,0 +1,1 @@
+sysctl -w kernel.core_pattern=/tmp/core-%e.%p.%h.%t

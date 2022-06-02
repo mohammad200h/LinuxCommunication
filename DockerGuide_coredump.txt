@@ -1,0 +1,3 @@
+Then create a container using following command:
+sudo docker run --runtime=nvidia  -it --ulimit core=-1 --security-opt seccomp=unconfined  --name LinuxCommunication -v $(pwd)/LinuxCommunication:$(pwd)/LinuxCommunication -e DISPLAY -e LOCAL_USER_ID=$(id -u)  --user=$(id -u) -e QT_X11_NO_MITSHM=1  -v /tmp/.X11-unix:/tmp/.X11-unix:rw  --net=host --privileged nvidia_linux_communication
+

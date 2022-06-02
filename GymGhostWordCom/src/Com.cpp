@@ -10,6 +10,13 @@ string str(const char *str){
     return s;
 }
 
+string uuid_s(boost::uuids::uuid client_id){
+
+    // cout<<"uuid:: "<<client_id<<endl;
+    // cout<<"uuid::lexical_cast:: "<<boost::lexical_cast<std::string>(client_id)<<endl;
+    return  boost::lexical_cast<std::string>(client_id);
+}
+
 
 GymworldState Parser::parseGymState(char data[]){
     GymworldState gymState;
@@ -331,6 +338,7 @@ void Server_MQ::add_client_state_to_buffer(boost::uuids::uuid client_id,Gymworld
 
 }
 void Server_MQ::remove_client_from_queue(boost::uuids::uuid client_id){
+    cout<<"Server_MQ::remove_client_from_queue:: called"<<endl;
     LOG("Server::"+str(__FUNCTION__));
    
     pthread_mutex_lock(&this->clients_queue.lock);
@@ -340,16 +348,19 @@ void Server_MQ::remove_client_from_queue(boost::uuids::uuid client_id){
             clients_queue.data.erase(clients_queue.data.begin()+i);
             pthread_mutex_unlock(&this->clients_queue.lock);
             LOG("Server::"+str(__FUNCTION__)+"::end");
+            cout<<"Server_MQ::remove_client_from_queue:: ended"<<endl;
             return;
             
         }
     }
     pthread_mutex_unlock(&this->clients_queue.lock);
+    cout<<"Server_MQ::remove_client_from_queue:: ended"<<endl;
     LOG("Server::"+str(__FUNCTION__)+"::end");
     
 
 }
 void Server_MQ::removeStateFromBuffer(boost::uuids::uuid client_id){
+    cout<<"Server_MQ::removeStateFromBuffer:: called"<<endl;
     LOG("Server::"+str(__FUNCTION__));  
     pthread_mutex_lock(&state_buffer_mutex);   
     for(int i = 0; i < state_buffer.size(); ++i){
@@ -357,17 +368,19 @@ void Server_MQ::removeStateFromBuffer(boost::uuids::uuid client_id){
             //remove state
             
             state_buffer.erase(state_buffer.begin()+i);
+            cout<<"Server_MQ::removeStateFromBuffer:: ended"<<endl;
             break;
         }
 
     }
     pthread_mutex_unlock(&state_buffer_mutex);
+    cout<<"Server_MQ::removeStateFromBuffer:: ended"<<endl;
     LOG("Server::"+str(__FUNCTION__)+"::end");
 
 }
 vector <boost::uuids::uuid> Server_MQ::getClientsInQueue(){
     LOG("Server::"+str(__FUNCTION__));
-    // cout<<"server::calling::getClientsInQueue"<<endl;
+    cout<<"Server_MQ::getClientsInQueue:: called"<<endl;
     vector <boost::uuids::uuid> clients_queue_ids;
     pthread_mutex_lock(&this->clients_queue.lock);
     // cout<<"getClientsInQueue::locking the resource"<<endl;
@@ -379,6 +392,7 @@ vector <boost::uuids::uuid> Server_MQ::getClientsInQueue(){
     }
     // cout<<"getClientsInQueue::unlocking the resource"<<endl;
     pthread_mutex_unlock(&this->clients_queue.lock);
+    cout<<"Server_MQ::getClientsInQueue:: edned"<<endl;
     LOG("Server::"+str(__FUNCTION__)+"::end");
     return clients_queue_ids;
 }
@@ -404,6 +418,7 @@ GymworldState Server_MQ::getGymStateforId(boost::uuids::uuid client_id){
 
 bool Server_MQ::send(boost::uuids::uuid client_id,GhostWorldState ghostState){
     LOG("Server::"+str(__FUNCTION__));
+    cout<<"Server_MQ::send:: called"<<endl;
     string client_mqName = MSG_Q_Name_GHOST+boost::uuids::to_string(client_id);
     ghostState.key.id = client_id;
     ghostState.key.mqName = client_mqName;
@@ -431,6 +446,7 @@ bool Server_MQ::send(boost::uuids::uuid client_id,GhostWorldState ghostState){
         exit (1);
     }
     mq_close(recvr_msgq_fd);
+    cout<<"Server_MQ::send:: ended"<<endl;
     LOG("Server::"+str(__FUNCTION__)+"::end");
     return true;
 
