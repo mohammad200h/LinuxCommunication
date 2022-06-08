@@ -48,7 +48,17 @@
 
 using namespace std;
 
+
+//*****************Utility*******************
+void print_obj(string objStr,objState obj);
 string uuid_s(boost::uuids::uuid client_id);
+void print_ghost_state(GhostWorldState ghost_state);
+void print_gym_state(GymworldState gym_state);
+
+//*******************************************
+
+
+
 
 struct Cleint_queue{
        vector <boost::uuids::uuid> data;

@@ -15,9 +15,10 @@ int main(int argc, char *argv[])
 	while(1){
         vector <boost::uuids::uuid> clients_id = server->getClientsInQueue();
         boost::uuids::uuid & id = clients_id[0];
-        cout<<"\rclients_id::len"<<clients_id.size();
+        // cout<<"\rclients_id::len"<<clients_id.size();
         for(auto & id: clients_id){
 	        GymworldState gymState = server->getGymStateforId(id);
+            print_gym_state(gymState);
             server->removeStateFromBuffer(id);
             GhostWorldState ghostState;
             ghostState.ff = true;
